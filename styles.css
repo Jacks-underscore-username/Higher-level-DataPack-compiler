@@ -1,0 +1,565 @@
+:root {
+    --global-dark: #000;
+    --global-light: #fff;
+    --global-highlight: hsl(0 100% 50%);
+    --global-transparent: #0000;
+    /* These shouldn't need changing, but if changed the hue will reflect relatively */
+
+    --border-color-ratio: 15%;
+    --border-light-offset: 15;
+    --border-opacity: .5;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100vh;
+    width: 100vw;
+    padding: 0;
+    margin: 0;
+    border-width: 0;
+    font-family: Fira Code;
+    color: var(--global-highlight);
+    background-color: var(--global-dark);
+    font-size: large;
+}
+
+#wrapper {
+    background:
+        radial-gradient(ellipse at top left, color-mix(in srgb, var(--global-dark) 75%, hsl(from var(--global-highlight) var(--pane-editor-hue) s l)), transparent),
+        radial-gradient(ellipse at top right, color-mix(in srgb, var(--global-dark) 75%, hsl(from var(--global-highlight) var(--pane-explorer-hue) s l)), transparent),
+        radial-gradient(ellipse at bottom left, color-mix(in srgb, var(--global-dark) 75%, hsl(from var(--global-highlight) var(--pane-controls-hue) s l)), transparent),
+        radial-gradient(ellipse at bottom right, color-mix(in srgb, var(--global-dark) 75%, hsl(from var(--global-highlight) var(--pane-docs-hue) s l)), transparent);
+    display: grid;
+    grid-template-columns: 49.5% 1% 49.5%;
+    grid-template-rows: 49.5% 1% 49.5%;
+    grid-template-areas:
+        "editor-wrapper fake-resizer-x1 explorer"
+        "fake-resizer-y fake-resizer-y fake-resizer-y"
+        "controls fake-resizer-x2 docs";
+    height: 100%;
+    width: 100%;
+    position: relative;
+}
+
+#wrapper>* {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.pane {
+    --highlight: hsl(from var(--global-highlight) calc(h + var(--hue) + 0) s l);
+    --dark: hsl(from var(--global-dark) calc(h + var(--hue) + 0) s l);
+    --light: hsl(from var(--global-light) calc(h + var(--hue) + 0) s l);
+    --transparent: hsl(from var(--global-transparent) calc(h + var(--hue) + 0) s l);
+    --border: hsl(from color-mix(in srgb,
+                var(--highlight) var(--border-color-ratio),
+                var(--dark)) h s calc(l + var(--border-light-offset)) / var(--border-opacity));
+
+    background-color: color-mix(in srgb,
+            var(--transparent) 75%,
+            color-mix(in srgb,
+                var(--highlight) 15%,
+                var(--dark)));
+    border: calc(var(--do-border) * 5px) solid var(--border);
+    border-top-width: 0;
+    border-color: var(--border);
+    overflow: auto;
+}
+
+.pane::-webkit-scrollbar {
+    width: 12px;
+}
+
+.pane::-webkit-scrollbar-track {
+    background: var(--border);
+}
+
+.pane::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--highlight) 50%, var(--dark));
+}
+
+.pane::-webkit-scrollbar-thumb:hover {
+    background: var(--highlight);
+}
+
+.pane::-webkit-scrollbar-corner {
+    background-color: var(--border);
+}
+
+.pane-titlebar {
+    padding: 5px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 10px;
+    background-color: var(--border);
+    width: 100%;
+}
+
+.pane-titlebar-title {
+    grid-column: 2;
+    justify-self: center;
+    text-align: center;
+    font-size: 25px;
+    text-align: center;
+    color: var(--highlight);
+}
+
+.pane-titlebar-icon-bar {
+    display: flex;
+    overflow: auto hidden;
+    gap: 5px;
+    min-height: max-content;
+}
+
+.pane-titlebar-icon {
+    cursor: pointer;
+    height: 100%;
+    aspect-ratio: 1/1;
+    transition: transform .15s ease-in-out;
+}
+
+.pane-titlebar-icon:hover {
+    transform: scale(1.1);
+}
+
+.pane-titlebar-icon>svg {
+    fill: var(--highlight);
+}
+
+.pane-titlebar-icon.open>svg {
+    fill: color-mix(in srgb, var(--highlight) 50%, var(--light));
+
+}
+
+.pane-titlebar-icon-bar::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+
+.pane-titlebar-icon-bar::-webkit-scrollbar-track {
+    background: var(--border);
+}
+
+.pane-titlebar-icon-bar::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--highlight) 50%, var(--dark));
+}
+
+.pane-titlebar-icon-bar::-webkit-scrollbar-thumb:hover {
+    background: var(--highlight);
+}
+
+.pane-option {
+    padding: 0 5px;
+    display: grid;
+    grid-auto-flow: row;
+    background-color: var(--border);
+    border-top: 1px solid var(--highlight);
+    height: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.pane-option.open {
+    height: auto;
+    opacity: 1;
+    pointer-events: all;
+}
+
+.pane-option-remember {
+    height: 25px;
+    display: grid;
+    grid-auto-flow: column;
+    justify-content: start;
+    align-items: center;
+    color: var(--highlight);
+    cursor: pointer;
+}
+
+.pane-option-remember svg {
+    width: 25px;
+    height: 25px;
+    fill: var(--highlight);
+    transition: transform .15s ease-in-out;
+}
+
+.pane-option-remember:hover svg {
+    transform: scale(1.1);
+}
+
+.pane-option-remember.on svg.pane-option-remember-off {
+    display: none;
+}
+
+.pane-option-remember.off svg.pane-option-remember-on {
+    display: none;
+}
+
+.pane-option-hue-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    padding-bottom: 5px;
+}
+
+.pane-option-hue-slider::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 10px;
+    cursor: pointer;
+    background: var(--border);
+    border-radius: 5px;
+}
+
+.pane-option-hue-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 10px;
+    background: var(--highlight);
+    cursor: pointer;
+}
+
+.pane-option-border-toggle {
+    height: 25px;
+    display: grid;
+    grid-auto-flow: column;
+    justify-content: start;
+    align-items: center;
+    color: var(--highlight);
+    cursor: pointer;
+}
+
+.pane-option-border-toggle svg {
+    width: 25px;
+    height: 25px;
+    fill: var(--highlight);
+    transition: transform .15s ease-in-out;
+}
+
+.pane-option-border-toggle:hover svg {
+    transform: scale(1.1);
+}
+
+.pane-option-border-toggle.on svg.pane-option-border-off {
+    display: none;
+}
+
+.pane-option-border-toggle.off svg.pane-option-border-on {
+    display: none;
+}
+
+.resizer {
+    transition: all .25s ease-in-out;
+    z-index: 10;
+    border: none;
+}
+
+.resizer:hover {
+    background-color: color-mix(in srgb, var(--global-transparent) 75%, var(--global-light));
+    z-index: 15;
+}
+
+#resizer-x:hover {
+    transform: scaleX(1.5);
+    cursor: ew-resize;
+}
+
+#resizer-y:hover {
+    transform: scaleY(1.5);
+    cursor: ns-resize;
+}
+
+#resizer-x {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+}
+
+#fake-resizer-x1 {
+    grid-area: fake-resizer-x1;
+}
+
+#fake-resizer-x2 {
+    grid-area: fake-resizer-x2;
+}
+
+#resizer-y {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+#fake-resizer-y {
+    grid-area: fake-resizer-y;
+}
+
+#editor-wrapper {
+    grid-area: editor-wrapper;
+    overflow: hidden !important;
+}
+
+#editor-color-patch-highlight {
+    color: var(--highlight);
+    display: none;
+}
+
+#editor-color-patch-border {
+    color: var(--border);
+    display: none;
+}
+
+#editor {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+#editor-title {
+    width: 100%;
+    height: fit-content;
+    color: var(--highlight);
+    background-color: color-mix(in srgb, var(--dark) 25%, var(--border));
+    text-align: center;
+}
+
+#editor-content {
+    width: 100%;
+    height: 100%;
+}
+
+#explorer {
+    grid-area: explorer;
+}
+
+#controls {
+    grid-area: controls;
+    text-align: center;
+}
+
+#docs {
+    grid-area: docs;
+}
+
+#controls-content {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+    align-items: baseline;
+}
+
+#controls-content>* {
+    margin: 10px;
+}
+
+#controls-content button,
+#controls-content input {
+    background-color: var(--border);
+    border: none;
+    font-size: inherit;
+    color: var(--highlight);
+    text-align: center;
+    border-radius: 15px;
+    padding: 10px;
+    margin: 5px;
+    cursor: pointer;
+}
+
+#controls-content button {
+    transition: transform .15s ease-in-out,
+        filter .15s ease-in-out;
+}
+
+#controls-content button:hover {
+    transform: scale(1.15);
+    filter: brightness(2);
+}
+
+.controls-section {
+    border: 5px solid var(--border);
+    border-radius: 25px;
+    overflow: hidden;
+}
+
+.controls-section-title {
+    background-color: var(--border);
+    cursor: pointer;
+    font-size: large;
+    color: var(--highlight);
+    transition: filter .15s ease-in-out;
+}
+
+.controls-section-title:hover {
+    filter: brightness(2);
+}
+
+.controls-section-content {
+    margin: 5px;
+    transition: margin-top .5s ease-in-out,
+        opacity .5s ease-in-out,
+        transform .5s ease-in-out,
+        height .5s ease-in-out;
+}
+
+.controls-section.closed>div.controls-section-content {
+    margin-top: 0;
+    opacity: 0;
+    transform: translateY(-50%) scaleY(0);
+    height: 0 !important;
+    pointer-events: none;
+}
+
+#controls-name-wrapper {
+    color: var(--highlight);
+    justify-content: center;
+    display: grid;
+}
+
+#controls-name-wrapper * {
+    margin: 2.5px;
+}
+
+#controls-name-wrapper input {
+    background-color: var(--border);
+    color: var(--highlight);
+    border: none;
+    text-align: center;
+    border-radius: 0 0 10px 10px;
+}
+
+#controls-name-wrapper input::placeholder {
+    color: color-mix(in srgb, var(--dark) 50%, var(--highlight));
+}
+
+#controls-name-wrapper input:first-of-type {
+    border-radius: 10px 10px 0 0;
+}
+
+#controls-name-wrapper input:focus-visible {
+    outline: 1px solid var(--highlight);
+}
+
+#controls-functionLocation-wrapper legend,
+#controls-folderLocation-wrapper legend {
+    color: var(--highlight);
+}
+
+#controls-functionLocation-wrapper button,
+#controls-folderLocation-wrapper button {
+    border-radius: 15px;
+    color: color-mix(in srgb, var(--dark) 50%, var(--highlight));
+}
+
+#controls-functionLocation-wrapper button.selected,
+#controls-folderLocation-wrapper button.selected {
+    color: var(--highlight);
+}
+
+#controls-folderLocation-selector {
+    display: none;
+}
+
+#controls-folderLocation-selector.show {
+    display: block;
+}
+
+#controls-folderLocation-current {
+    color: var(--highlight);
+}
+
+.checkbox-wrapper,
+#controls-autoGenerateFolder-wrapper {
+    height: 25px;
+    display: grid;
+    grid-auto-flow: column;
+    justify-content: center;
+    align-items: center;
+    color: var(--highlight);
+    cursor: pointer;
+}
+
+#controls-autoGenerateFolder-wrapper {
+    margin: 10px;
+}
+
+.checkbox-wrapper svg {
+    width: 25px;
+    height: 25px;
+    fill: var(--highlight);
+    transition: transform .15s ease-in-out;
+}
+
+.checkbox-wrapper:hover svg {
+    transform: scale(1.1);
+}
+
+.checkbox-wrapper.on svg.icon-off {
+    display: none;
+}
+
+.checkbox-wrapper.off svg.icon-on {
+    display: none;
+}
+
+#explorer-content {
+    padding-left: 5px;
+}
+
+#explorer-content .file {
+    color: var(--highlight);
+    transition: transform .15s ease-in-out;
+    width: max-content;
+    cursor: pointer;
+}
+
+#explorer-content .file:hover {
+    transform: scale(1.25) translateX(12.5%);
+}
+
+#explorer-content .folder {
+    color: var(--highlight);
+}
+
+#explorer-content .folder .content {
+    margin-left: 20px;
+    padding-left: 5px;
+    border-left: 1px solid var(--highlight);
+}
+
+#explorer-content .folder>.titleWrapper {
+    display: grid;
+    justify-items: center;
+    grid-auto-flow: column;
+    width: max-content;
+    cursor: pointer;
+    transition: transform .15s ease-in-out;
+}
+
+#explorer-content .folder>.titleWrapper:hover {
+    transform: scale(1.25) translateX(12.5%);
+}
+
+#explorer-content .folder>.titleWrapper svg {
+    height: 100%;
+    aspect-ratio: 1/1;
+    fill: var(--highlight)
+}
+
+#explorer-content .folder.closed>.titleWrapper .openIcon svg {
+    display: none;
+}
+
+#explorer-content .folder.open>.titleWrapper .closedIcon svg {
+    display: none;
+}
+
+#explorer-content .folder.closed>.content {
+    display: none;
+}
