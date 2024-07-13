@@ -334,6 +334,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
 
                 monaco.languages.register({ id: 'dynamicSyntaxHighlighting' })
+                monaco.languages.setLanguageConfiguration('dynamicSyntaxHighlighting', { comments: { lineComment: '#' } })
 
                 obj.setTokenizer = tokenizer => monaco.languages.setMonarchTokensProvider('dynamicSyntaxHighlighting', { tokenizer })
 
