@@ -270,7 +270,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             '            run loop',
             '        }',
             '    }',
-            '    run loop'].join('\r\n'))
+            '    run loop',
+            '}'].join('\r\n'))
 
     const compile = (() => {
         return (fromButton) => {
