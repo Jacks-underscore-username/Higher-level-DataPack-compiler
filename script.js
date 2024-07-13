@@ -1,7 +1,7 @@
 import realCompile from './compile.js'
 
 //Used to ship a working highlightless version before a working highlighting version exists.
-const disableHighlighting = true
+const disableHighlighting = false
 
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -251,7 +251,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (folder.read('source.hdp') === undefined)
-        folder.write('source.hdp', '#Write your code here...')
+        folder.write('source.hdp', [
+
+            '#Example fibonacci program:',
+            'function run {',
+            '    var define a = 1',
+            '    var define b = 0',
+            '    var define c = 0',
+            '',
+            '    var define index = 0',
+            '    function loop {',
+            '        var index += 1',
+            '        var c = var b',
+            '        var b = var a',
+            '        var a += var c',
+            '        /tellraw @a {"text":"","extra":[{"score":{"name":"HDP","objective":"v{b}"}}]}',
+            '        if index < 15 {',
+            '            run loop',
+            '        }',
+            '    }',
+            '    run loop'].join('\r\n'))
 
     const compile = (() => {
         return (fromButton) => {
@@ -392,7 +411,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 whitespace: 'white',
                 ...Object.fromEntries(['keyword', 'comment', 'string', 'number', 'operator', 'identifier'].map(type => [type, type]))
             }
-            const makeRegexSafe = string => string.replace(/[.*+?^${}()|[\]\\@]/g, '\\$&').replace(/@/g, '.$&')
+            const makeRegexSafe = string => string.replace(/[.*+?^${}()|[\]\\@]/g, '\\$&').replace(/@/g, '.')
             const states = {}
             let lineIndex = 1
             while (lineIndex <= maxLine) {
@@ -438,7 +457,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         obj.setHighlights()
         obj.layout = () => obj.editor.layout()
-        obj.open(load('currentFile'))
+        obj.open(load('currentFile') ?? 'source.hdp')
         return obj
     })()
 
